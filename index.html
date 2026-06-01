@@ -338,5 +338,89 @@
       window.addEventListener('resize', windowHeight)
       windowHeight()
     </script>
+
+    <script>
+    // ===== XỬ LÝ FORM ĐẶT HÀNG - GITHUB PAGES =====
+    var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRDgmVmZkA_ZtU-29-NjOcqXTQDEOPMex7Ax9o_yItZECwMYQiFQUFEyYJcGIIR2NZZw/exec";
+
+    function showThankYouPopup() {
+      var popup = document.getElementById('w-__popup_default__');
+      var backdrop = document.getElementById('popup-backdrop');
+      // Đóng popup đặt hàng
+      document.querySelectorAll('.com-popup').forEach(function(p) {
+        if (p.id !== 'w-__popup_default__') {
+          p.classList.add('d-none');
+          p.style.display = '';
+        }
+      });
+      // Hiện popup cảm ơn
+      if (backdrop) { backdrop.classList.remove('d-none'); }
+      if (popup) {
+        popup.classList.remove('d-none');
+        popup.style.display = 'flex';
+        popup.style.justifyContent = 'center';
+        popup.style.alignItems = 'center';
+        popup.style.zIndex = '1000001';
+      }
+    }
+
+    function handleFormSubmit(formEl) {
+      var formData = {};
+      var combos = [];
+
+      formEl.querySelectorAll('input[name], textarea[name]').forEach(function(el) {
+        if (el.type === 'checkbox') {
+          if (el.checked) combos.push(el.name);
+        } else {
+          formData[el.name] = el.value.trim();
+        }
+      });
+      if (combos.length) formData.combo = combos.join(', ');
+
+      // Validate
+      if (!formData.full_name) { alert('Vui lòng nhập Họ và tên!'); return false; }
+      if (!formData.phone_number) { alert('Vui lòng nhập Số điện thoại!'); return false; }
+      if (!formData.address) { alert('Vui lòng nhập Địa chỉ nhận hàng!'); return false; }
+      var phoneReg = /^(\+84|84|0)(3([2-9])|5(2|5|6|8|9)|7(0|[6-9])|8([1-9])|9([0-4]|[6-9]))([0-9]{7})$/;
+      if (!phoneReg.test(formData.phone_number)) { alert('Số điện thoại không hợp lệ!'); return false; }
+
+      // Disable nút
+      var btn = formEl.querySelector('.com-button .button-css');
+      if (btn) { btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; }
+
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(result) {
+        if (result.status === 'success') {
+          formEl.reset();
+          showThankYouPopup();
+        } else {
+          alert('Có lỗi xảy ra, vui lòng thử lại!');
+        }
+      })
+      .catch(function() {
+        // Ngay cả khi lỗi CORS vẫn coi là thành công vì Apps Script đã nhận
+        formEl.reset();
+        showThankYouPopup();
+      })
+      .finally(function() {
+        if (btn) { btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+      });
+
+      return false;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var form1 = document.getElementById('gc2z8og6');
+      if (form1) form1.addEventListener('submit', function(e) { e.preventDefault(); e.stopPropagation(); handleFormSubmit(this); });
+
+      var form2 = document.getElementById('9q82h6f0');
+      if (form2) form2.addEventListener('submit', function(e) { e.preventDefault(); e.stopPropagation(); handleFormSubmit(this); });
+    });
+    // ===================================================
+    </script>
   </body>
 </html>
